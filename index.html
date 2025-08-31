@@ -355,7 +355,6 @@
             <p class="subtitle">Interactive Detective Story Demo</p>
             <div style="margin-top: 15px; font-family: 'Crimson Text', serif; font-size: 0.9rem; color: var(--text-secondary); font-style: italic;">
                 Made by Leaf Wang
-        
             </div>
         </header>
 
@@ -443,8 +442,38 @@
         function typewriterEffect(element, text, delay = 30) {
             const formattedText = text.replace(/\n/g, '<br>');
             let i = 0;
+            let skipAnimation = false;
+            
+            // Add skip instruction
+            const skipHint = document.createElement('div');
+            skipHint.style.cssText = `
+                position: absolute; 
+                top: 10px; 
+                right: 15px; 
+                font-size: 0.7rem; 
+                color: var(--text-muted); 
+                font-family: 'JetBrains Mono', monospace;
+                opacity: 0.6;
+                z-index: 10;
+            `;
+            skipHint.innerHTML = 'Click to skip ▶';
+            element.parentElement.style.position = 'relative';
+            element.parentElement.appendChild(skipHint);
+            
+            // Click to skip functionality
+            const skipFunction = () => {
+                skipAnimation = true;
+                element.innerHTML = formattedText;
+                skipHint.remove();
+                setTimeout(showChoices, 200);
+            };
+            
+            element.addEventListener('click', skipFunction);
+            skipHint.addEventListener('click', skipFunction);
             
             function type() {
+                if (skipAnimation) return;
+                
                 if (i < formattedText.length) {
                     if (formattedText.charAt(i) === '<') {
                         // Handle HTML tags
@@ -457,7 +486,8 @@
                     }
                     setTimeout(type, delay);
                 } else {
-                    // Text finished, show choices
+                    // Text finished, remove skip hint and show choices
+                    skipHint.remove();
                     setTimeout(showChoices, 500);
                 }
             }
@@ -508,8 +538,13 @@
             const endDiv = document.createElement('div');
             endDiv.className = 'story-end';
             endDiv.innerHTML = `
-                <h3>Investigation Complete</h3>
-                <p>Thank you for playing Haunted Fox</p>
+                <div style="margin-bottom: 20px; font-style: italic; line-height: 1.8;">
+                    He snaps the phone shut, his face etched with worry.<br>
+                    A new name has been put into play. Hers.
+                </div>
+                <div style="margin-top: 25px; font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; color: var(--accent-amber);">
+                    [End of Demo. The full story is yet to be told.]
+                </div>
             `;
             storyContainer.appendChild(endDiv);
             restartButton.style.display = 'block';
