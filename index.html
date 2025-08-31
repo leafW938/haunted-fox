@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Haunted Fox - Interactive Detective Story</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/ink-js/2.2.2/ink-es6.min.js"></script>
+    <script src="https://unpkg.com/inkjs@2.2.2/dist/ink-full.js"></script></script>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -376,12 +376,12 @@
         // Load the JSON story file
         async function loadStory() {
             try {
-                const response = await fetch('haunted-fox.json');
+                const response = await fetch('Haunted%20Fox.json');
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 const storyContent = await response.json();
-                story = new inkjs.Story(storyContent);
+                story = new Story(storyContent);
                 storyContainer.innerHTML = ''; // Clear loading message
                 continueStory();
             } catch (error) {
@@ -389,7 +389,7 @@
                 storyContainer.innerHTML = `
                     <div class="error">
                         <h3>⚠ Case File Access Denied</h3>
-                        <p>Unable to load investigation data. Please ensure "Haunted Fox.json" is available.</p>
+                        <p>Unable to load investigation data. Please ensure "haunted-fox.json" is available.</p>
                         <br>
                         <details>
                             <summary style="cursor: pointer; color: var(--accent-amber);">Technical Details</summary>
