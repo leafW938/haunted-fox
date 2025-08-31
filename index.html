@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Haunted Fox - Interactive Detective Story</title>
-    <script src="https://cdn.jsdelivr.net/npm/inkjs@2.3.2/dist/ink-full.js"></script></script>
+    <script src="https://unpkg.com/inkjs@2.3.2/dist/ink-full.js"></script></script>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -359,7 +359,7 @@
                 > Investigation Log - New Cross Police Department
             </div>
             <div id="story">
-                <div class="loading">Initializing case files...</div>
+                <div class="loading">正在加载故事引擎...</div>
             </div>
             <div id="choices"></div>
         </main>
@@ -528,7 +528,19 @@
 
         // Initialize the story when page loads
         window.onload = function() {
-            setTimeout(loadStory, 1000); // Slight delay for dramatic effect
+            // 确保inkjs库已加载
+            if (typeof inkjs === 'undefined') {
+                console.error('inkjs library not loaded');
+                storyContainer.innerHTML = `
+                    <div class="error">
+                        <h3>⚠ Library Loading Failed</h3>
+                        <p>The inkjs library failed to load. This could be due to network issues or CDN problems.</p>
+                        <p>Please refresh the page or try again later.</p>
+                    </div>
+                `;
+                return;
+            }
+            setTimeout(loadStory, 1000);
         };
 
         // Add some ambient sound effects (optional)
