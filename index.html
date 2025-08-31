@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Haunted Fox - Interactive Detective Story</title>
-    <script src="https://unpkg.com/inkjs@2.2.2/dist/ink-full.js"></script></script>
+    <script src="https://cdn.jsdelivr.net/npm/inkjs@2.3.2/dist/ink-full.js"></script></script>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -381,7 +381,7 @@
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 const storyContent = await response.json();
-                story = new Story(storyContent);
+                story = new inkjs.Story(storyContent);
                 storyContainer.innerHTML = ''; // Clear loading message
                 continueStory();
             } catch (error) {
