@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Haunted Fox - Interactive Detective Story</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ink-js/2.2.2/ink-es6.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #1a1a1a;
+            --bg-tertiary: #2a2a2a;
+            --text-primary: #e8e6e3;
+            --text-secondary: #b8b5b2;
+            --text-muted: #888680;
+            --accent-red: #d73027;
+            --accent-amber: #fc8d3e;
+            --accent-blue: #4e79a7;
+            --border-color: #3a3a3a;
+            --shadow-color: rgba(0, 0, 0, 0.8);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Crimson Text', serif;
+            background: linear-gradient(135deg, var(--bg-primary) 0%, #1a1a2e 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .grain-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.03;
+            background-image: 
+                radial-gradient(circle at 25% 25%, #fff 1px, transparent 0),
+                radial-gradient(circle at 75% 75%, #fff 1px, transparent 0);
+            background-size: 4px 4px;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 30px;
+        }
+
+        .title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 300;
+            color: var(--accent-red);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        .title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent-red), transparent);
+        }
+
+        .subtitle {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .story-panel {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 32px var(--shadow-color);
+            backdrop-filter: blur(10px);
+        }
+
+        .story-header {
+            background: linear-gradient(90deg, var(--bg-tertiary), var(--bg-secondary));
+            padding: 15px 25px;
+            border-bottom: 1px solid var(--border-color);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        #story {
+            padding: 30px;
+            min-height: 400px;
+            max-height: 60vh;
+            overflow-y: auto;
+            font-size: 1.1rem;
+            line-height: 1.8;
+        }
+
+        #story::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        #story::-webkit-scrollbar-track {
+            background: var(--bg-tertiary);
+        }
+
+        #story::-webkit-scrollbar-thumb {
+            background: var(--accent-red);
+            border-radius: 4px;
+        }
+
+        .story-text {
+            margin-bottom: 25px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.02);
+            border-left: 3px solid var(--accent-amber);
+            border-radius: 0 8px 8px 0;
+            position: relative;
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .story-text::before {
+            content: '"';
+            position: absolute;
+            left: -5px;
+            top: 0;
+            font-size: 3rem;
+            color: var(--accent-amber);
+            opacity: 0.3;
+            font-family: serif;
+        }
+
+        #choices {
+            padding: 25px;
+            background: var(--bg-tertiary);
+            border-top: 1px solid var(--border-color);
+        }
+
+        .choices-header {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .choice {
+            display: block;
+            width: 100%;
+            margin: 12px 0;
+            padding: 18px 25px;
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, #1e1e1e 100%);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: 'Crimson Text', serif;
+            font-size: 1rem;
+            text-align: left;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .choice::before {
+            content: '>';
+            position: absolute;
+            left: -20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--accent-red);
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .choice:hover {
+            background: linear-gradient(135deg, var(--accent-red) 0%, #b71c1c 100%);
+            border-color: var(--accent-red);
+            transform: translateX(5px);
+            box-shadow: 0 8px 25px rgba(215, 48, 39, 0.4);
+        }
+
+        .choice:hover::before {
+            left: 15px;
+        }
+
+        .choice:active {
+            transform: translateX(2px) scale(0.98);
+        }
+
+        .story-end {
+            text-align: center;
+            padding: 30px;
+            border: 2px dashed var(--accent-amber);
+            border-radius: 12px;
+            background: rgba(252, 141, 62, 0.1);
+            margin: 20px 0;
+        }
+
+        .story-end h3 {
+            color: var(--accent-amber);
+            margin-bottom: 15px;
+            font-family: 'JetBrains Mono', monospace;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        #restart {
+            display: none;
+            margin: 20px auto;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, var(--accent-blue), #2e5984);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(78, 121, 167, 0.3);
+        }
+
+        #restart:hover {
+            background: linear-gradient(135deg, #5a9bd4, var(--accent-blue));
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(78, 121, 167, 0.5);
+        }
+
+        .error {
+            color: var(--accent-red);
+            background: rgba(215, 48, 39, 0.1);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid var(--accent-red);
+            margin: 20px 0;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .loading {
+            text-align: center;
+            color: var(--text-muted);
+            font-style: italic;
+            padding: 50px;
+            font-size: 1.1rem;
+        }
+
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            margin-left: 10px;
+            border: 2px solid var(--text-muted);
+            border-top: 2px solid var(--accent-red);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .story-panel {
+                border-radius: 8px;
+            }
+            
+            #story {
+                padding: 20px;
+                font-size: 1rem;
+            }
+            
+            .choice {
+                padding: 15px 20px;
+                font-size: 0.95rem;
+            }
+        }
+
+        /* Dark mode enhancements */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: linear-gradient(135deg, #000000 0%, #1a1a2e 100%);
+            }
+        }
+
+        /* Accessibility */
+        .choice:focus {
+            outline: 2px solid var(--accent-amber);
+            outline-offset: 2px;
+        }
+
+        button:focus {
+            outline: 2px solid var(--accent-blue);
+            outline-offset: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="grain-overlay"></div>
+    
+    <div class="container">
+        <header class="header">
+            <h1 class="title">Haunted Fox</h1>
+            <p class="subtitle">Interactive Detective Story</p>
+        </header>
+
+        <main class="story-panel">
+            <div class="story-header">
+                > Investigation Log - New Cross Police Department
+            </div>
+            <div id="story">
+                <div class="loading">Initializing case files...</div>
+            </div>
+            <div id="choices"></div>
+        </main>
+
+        <button id="restart" onclick="restartStory()">◄ Restart Investigation</button>
+    </div>
+
+    <script>
+        let story;
+        let storyContainer = document.getElementById('story');
+        let choicesContainer = document.getElementById('choices');
+        let restartButton = document.getElementById('restart');
+
+        // Load the JSON story file
+        async function loadStory() {
+            try {
+                const response = await fetch('Haunted Fox.json');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const storyContent = await response.json();
+                story = new inkjs.Story(storyContent);
+                storyContainer.innerHTML = ''; // Clear loading message
+                continueStory();
+            } catch (error) {
+                console.error('Error loading story:', error);
+                storyContainer.innerHTML = `
+                    <div class="error">
+                        <h3>⚠ Case File Access Denied</h3>
+                        <p>Unable to load investigation data. Please ensure "Haunted Fox.json" is available.</p>
+                        <br>
+                        <details>
+                            <summary style="cursor: pointer; color: var(--accent-amber);">Technical Details</summary>
+                            <p style="margin-top: 10px; font-size: 0.9rem;">
+                                Error: ${error.message}<br><br>
+                                <strong>Solutions:</strong><br>
+                                • Verify JSON file is in the same directory<br>
+                                • Run via local server (python3 -m http.server 8000)<br>
+                                • Check browser console for additional errors
+                            </p>
+                        </details>
+                    </div>
+                `;
+            }
+        }
+
+        function continueStory() {
+            let storyText = '';
+            
+            // Get all available story text
+            while (story.canContinue) {
+                storyText += story.Continue();
+            }
+            
+            // Display the text with typewriter effect
+            if (storyText.trim() !== '') {
+                const textDiv = document.createElement('div');
+                textDiv.className = 'story-text';
+                storyContainer.appendChild(textDiv);
+                
+                // Typewriter effect
+                typewriterEffect(textDiv, storyText);
+            } else {
+                showChoices();
+            }
+            
+            // Check if story ended
+            if (!story.canContinue && story.currentChoices.length === 0) {
+                showStoryEnd();
+            }
+        }
+
+        function typewriterEffect(element, text, delay = 30) {
+            const formattedText = text.replace(/\n/g, '<br>');
+            let i = 0;
+            
+            function type() {
+                if (i < formattedText.length) {
+                    if (formattedText.charAt(i) === '<') {
+                        // Handle HTML tags
+                        const tagEnd = formattedText.indexOf('>', i);
+                        element.innerHTML += formattedText.substring(i, tagEnd + 1);
+                        i = tagEnd + 1;
+                    } else {
+                        element.innerHTML += formattedText.charAt(i);
+                        i++;
+                    }
+                    setTimeout(type, delay);
+                } else {
+                    // Text finished, show choices
+                    setTimeout(showChoices, 500);
+                }
+            }
+            
+            type();
+        }
+
+        function showChoices() {
+            if (story.currentChoices.length === 0) return;
+            
+            // Add choices header if there are choices
+            if (choicesContainer.innerHTML === '') {
+                const header = document.createElement('div');
+                header.className = 'choices-header';
+                header.innerHTML = '— Choose your next action —';
+                choicesContainer.appendChild(header);
+            }
+            
+            story.currentChoices.forEach((choice, index) => {
+                const button = document.createElement('button');
+                button.className = 'choice';
+                button.innerHTML = choice.text;
+                button.onclick = () => makeChoice(index);
+                
+                // Add slight delay for each choice to appear
+                setTimeout(() => {
+                    choicesContainer.appendChild(button);
+                    button.style.animation = 'fadeInUp 0.4s ease-out';
+                }, index * 100);
+            });
+        }
+
+        function makeChoice(choiceIndex) {
+            // Clear choices
+            choicesContainer.innerHTML = '';
+            
+            // Make the choice
+            story.ChooseChoiceIndex(choiceIndex);
+            
+            // Add a small delay before continuing
+            setTimeout(() => {
+                continueStory();
+            }, 200);
+        }
+
+        function showStoryEnd() {
+            const endDiv = document.createElement('div');
+            endDiv.className = 'story-end';
+            endDiv.innerHTML = `
+                <h3>Investigation Complete</h3>
+                <p>Thank you for playing Haunted Fox</p>
+            `;
+            storyContainer.appendChild(endDiv);
+            restartButton.style.display = 'block';
+        }
+
+        function restartStory() {
+            storyContainer.innerHTML = '<div class="loading">Reloading case files...</div>';
+            choicesContainer.innerHTML = '';
+            restartButton.style.display = 'none';
+            setTimeout(loadStory, 500);
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', function(e) {
+            const choices = document.querySelectorAll('.choice');
+            if (choices.length === 0) return;
+            
+            if (e.key >= '1' && e.key <= '9') {
+                const choiceIndex = parseInt(e.key) - 1;
+                if (choiceIndex < choices.length) {
+                    choices[choiceIndex].click();
+                }
+            }
+        });
+
+        // Initialize the story when page loads
+        window.onload = function() {
+            setTimeout(loadStory, 1000); // Slight delay for dramatic effect
+        };
+
+        // Add some ambient sound effects (optional)
+        function playClickSound() {
+            // You can add audio files later if desired
+        }
+
+        // Save progress to localStorage (for future enhancement)
+        function saveProgress() {
+            if (story) {
+                localStorage.setItem('hauntedFoxProgress', story.state.ToJson());
+            }
+        }
+
+        function loadProgress() {
+            const saved = localStorage.getItem('hauntedFoxProgress');
+            if (saved && story) {
+                story.state.LoadJson(saved);
+                continueStory();
+            }
+        }
+    </script>
+</body>
+</html>
